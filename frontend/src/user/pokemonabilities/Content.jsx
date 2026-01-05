@@ -38,16 +38,32 @@ const Content = () => {
   console.log(PokemonAbilities)
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [weightFilter, setWeightFilter] = useState("ALL");
   const [page, setPage] = useState(1);
   const [paginatedData, setPaginatedData] = useState([]);
 
  const filteredData = useMemo(() => {
     return  PokemonAbilities?.filter((item) => {
-    const cocokNama = (item.names || '').toLowerCase().includes(searchTerm.toLowerCase());
-    return cocokNama;
-
+    const pokemon = Pokemons?.find(p => p.pokemon_id === item.pokemon_id);
+    const pokemonName = pokemon?.name || '';
+    const pokemonWeight = pokemon?.weight || 0;
+    
+    const cocokNama = pokemonName.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Filter berdasarkan weight
+    let cocokWeight = true;
+    if (weightFilter === "Light") {
+      cocokWeight = pokemonWeight >= 100 && pokemonWeight <= 150;
+    } else if (weightFilter === "Medium") {
+      cocokWeight = pokemonWeight >= 151 && pokemonWeight <= 199;
+    } else if (weightFilter === "Heavy") {
+      cocokWeight = pokemonWeight >= 200;
+    }
+    // weightFilter === "ALL" tidak perlu kondisi tambahan
+    
+    return cocokNama && cocokWeight;
      });
-  }, [searchTerm, PokemonAbilities]);
+  }, [searchTerm, weightFilter, PokemonAbilities, Pokemons]);
 
 
    const rowsPerPage = 5;
@@ -184,6 +200,23 @@ const Content = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           />
+        </div>
+        
+        {/* Filter Weight */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Filter berdasarkan Berat:
+          </label>
+          <select
+            value={weightFilter}
+            onChange={(e) => setWeightFilter(e.target.value)}
+            className="px-4 py-2 border rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+          >
+            <option value="ALL">ALL - Semua Berat</option>
+            <option value="Light">Light - 100-150</option>
+            <option value="Medium">Medium - 151-199</option>
+            <option value="Heavy">Heavy - ≥200</option>
+          </select>
         </div>
 
         {paginatedData.length > 0 ? (
